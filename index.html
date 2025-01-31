@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batalha Pokémon entre Jogadores</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .border {
+            border: 1px solid black;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .poks {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .pok {
+            width: 120px;
+            height: 160px;
+            margin: 5px;
+            border: 1px solid gray;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 5px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .pok.collected {
+            background-color: lightgreen;
+            border-color: green;
+        }
+        img {
+            width: 80px;
+            height: 80px;
+            background-color: lightgray;
+        }
+        .battle-log {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid black;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            background: #f8f8f8;
+        }
+        .player-selection {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-top: 20px;
+        }
+        select {
+            font-size: 16px;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 Roleta de Figurinhas Pokémon</h1>
+
+    <div class="roleta-container">
+        <button onclick="girarRoleta()">🎡 Girar Roleta</button>
+        <p id="resultado"></p>
+    </div>
+
+    <div class="border poks">
+        <div class="pok" data-id="1" data-nome="Pikachu">
+            <img src="" alt="img">
+            <p>Pikachu ⚡</p>
+        </div>
+        <div class="pok" data-id="2" data-nome="Charmander">
+            <img src="" alt="img">
+            <p>Charmander 🔥</p>
+        </div>
+        <div class="pok" data-id="3" data-nome="Squirtle">
+            <img src="" alt="img">
+            <p>Squirtle 🌊</p>
+        </div>
+    </div>
+
+    <h2>⚔️ Batalha entre Jogadores</h2>
+
+    <div class="player-selection">
+        <div>
+            <h3>Jogador 1</h3>
+            <select id="player1"></select>
+        </div>
+        <div>
+            <h3>Jogador 2</h3>
+            <select id="player2"></select>
+        </div>
+    </div>
+
+    <button onclick="iniciarBatalha()">🔴 Iniciar Batalha</button>
+    
+    <div class="battle-log">
+        <h3>Log da Batalha</h3>
+        <p id="logBatalha">Nenhuma batalha ainda...</p>
+    </div>
+
+    <script>
+        function loadStickers() {
+            let collectedStickers = JSON.parse(localStorage.getItem("collectedStickers")) || [];
+            let select1 = document.getElementById("player1");
+            let select2 = document.getElementById("player2");
+
+            select1.innerHTML = "";
+            select2.innerHTML = "";
+
+            document.querySelectorAll(".pok").forEach(pok => {
+                let id = pok.getAttribute("data-id");
+                let nome = pok.getAttribute("data-nome");
+                
+                if (collectedStickers.includes(id)) {
+                    pok.classList.add("collected");
+                    
+                    // Adicionar opções nos selects
+                    let option1 = document.createElement("option");
+                    option1.value = id;
+                    option1.textContent = nome;
+                    select1.appendChild(option1);
+
+                    let option2 = document.createElement("option");
+                    option2.value = id;
+                    option2.textContent = nome;
+                    select2.appendChild(option2);
+                }
+            });
+        }
+
+        function girarRoleta() {
+            let figurinhas = document.querySelectorAll(".pok");
+            let sorteada = figurinhas[Math.floor(Math.random() * figurinhas.length)];
+            let id = sorteada.getAttribute("data-id");
+            let collectedStickers = JSON.parse(localStorage.getItem("collectedStickers")) || [];
+
+            if (!collectedStickers.includes(id)) {
+                collectedStickers.push(id);
+                sorteada.classList.add("collected");
+                localStorage.setItem("collectedStickers", JSON.stringify(collectedStickers));
+                document.getElementById("resultado").innerText = `Você ganhou ${sorteada.getAttribute("data-nome")}! 🎉`;
+            } else {
+                document.getElementById("resultado").innerText = `Você já tem ${sorteada.getAttribute("data-nome")}! 😅`;
+            }
+
+            loadStickers();
+        }
+
+        function iniciarBatalha() {
+            let select1 = document.getElementById("player1");
+            let select2 = document.getElementById("player2");
+
+            let p1 = select1.options[select1.selectedIndex].text;
+            let p2 = select2.options[select2.selectedIndex].text;
+
+            if (p1 === p2) {
+                document.getElementById("logBatalha").innerText = "Os jogadores não podem escolher o mesmo Pokémon!";
+                return;
+            }
+
+            let hp1 = Math.floor(Math.random() * 30) + 70;
+            let hp2 = Math.floor(Math.random() * 30) + 70;
+            let atk1 = Math.floor(Math.random() * 15) + 10;
+            let atk2 = Math.floor(Math.random() * 15) + 10;
+
+            let log = `🔥 ${p1} (HP: ${hp1}, ATK: ${atk1}) vs ${p2} (HP: ${hp2}, ATK: ${atk2})\n\n`;
+
+            while (hp1 > 0 && hp2 > 0) {
+                hp2 -= atk1;
+                log += `⚡ ${p1} atacou ${p2} (-${atk1} HP)\n`;
+                if (hp2 <= 0) {
+                    log += `🏆 ${p1} venceu a batalha!\n`;
+                    break;
+                }
+
+                hp1 -= atk2;
+                log += `🔥 ${p2} atacou ${p1} (-${atk2} HP)\n`;
+                if (hp1 <= 0) {
+                    log += `🏆 ${p2} venceu a batalha!\n`;
+                    break;
+                }
+            }
+
+            document.getElementById("logBatalha").innerText = log;
+        }
+
+        loadStickers();
+    </script>
+</body>
+</html>
